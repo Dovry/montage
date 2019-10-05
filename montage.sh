@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-#set -x
+#set -x # for debugging purposes
 
 MIN_MATRIX_SIZE="4"
 
@@ -9,21 +9,21 @@ while test "$#" -gt 0; do
   case "$1" in
   -h) #|--help)
     printf "Options:"
-    printf "\n     -h, --help           Shows help"
+    printf "\n     -h, --help           Shows this help menu"
     printf "\n     -i, --input          Input file"
     printf "\n     -m, --matrix-size    Matrix dimension"
     printf "\n"
     exit 0
     ;;
-  -m* | --matrix-size*)
-    shift
-    MATRIX_SIZE=$1
-    shift
-    ;;
   -i* | --input*)
     shift
     INPUT_FILE=$1
     printf "\nFile used is '%s'\n" "$1"
+    shift
+    ;;
+  -m* | --matrix-size*)
+    shift
+    MATRIX_SIZE=$1
     shift
     ;;
   esac
@@ -39,7 +39,7 @@ TIME="${SECONDS%.*}" # get total runtime in seconds
 
 if [ -n "$MATRIX_SIZE" ]; then
   SECONDS=$(($TIME / $MATRIX_SIZE))
-  MINUTES$(($SECONDS / 60))
+  MINUTES=$(($SECONDS / 60 -1))
 else
   SECONDS=$(($TIME / $MIN_MATRIX_SIZE))
   MINUTES=$(($SECONDS / 60 - 1))
@@ -53,9 +53,8 @@ while true; do
   IFS= read -r result || exit
   case $result in
     ([yY])
-    MIN_MATRIX_SIZE="4"
     break
   esac
   printf "\nTry [ -h / --help ]\n"
-  exit 1
+  exit 0
 done
