@@ -1,9 +1,8 @@
 #!/bin/sh
 
 set -e
-set -u
+#set -u
 
-MATRIX_SIZE="9"
 MIN_MATRIX_SIZE="4"
 
 while getopts "m:i:" o; do
@@ -13,20 +12,29 @@ while getopts "m:i:" o; do
       ;;
     i)
       INPUT=${OPTARG}
-      echo "input is $OPTARG"
+      printf "\nFile used is '%s'\n" "$INPUT"
       ;;
     *)
-      usage
+      printf ""
       ;;
   esac
 done
 shift "$(($OPTIND -1))"
 
 
-printf "\nFile used is '%s'\n" "$INPUT"
 SECONDS="$(ffprobe "$INPUT" -show_entries format=duration -v quiet -of csv="p=0")"
 TIME="${SECONDS%.*}" # get total runtime in seconds
-SPLIT=$(( $TIME / $MATRIX_SIZE )) # 
+
+if [ -n "$MATRIX_SIZE" ]; then
+  SPLIT=$(( $TIME / $MATRIX_SIZE )) # 
+else
+  SPLIT=$(( $TIME / $MIN_MATRIX_SIZE )) # 
+fi
 
 printf "\nTime in seconds is %s\n" "$TIME"
-printf "\nWith a collage of %s, a screenshot is taken every %s seconds\n\n" "$MATRIX_SIZE" "$SPLIT"
+
+if [ -n "$MATRIX_SIZE" ]; then
+  printf "\nWith a collage of %s, a screenshot is taken every %s seconds\n\n" "$MATRIX_SIZE" "$SPLIT"
+else
+  printf "\nWith a collage of %s, a screenshot is taken every %s seconds\n\n" "$MIN_MATRIX_SIZE" "$SPLIT"
+fi
