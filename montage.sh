@@ -1,40 +1,47 @@
 #!/bin/sh
 
 set -e
-#set -u
+#set -x
 
 MIN_MATRIX_SIZE="4"
 
-while getopts "m:i:" o; do
-  case "${o}" in
-    m)
-      MATRIX_SIZE="$OPTARG"
-      ;;
-    i)
-      INPUT=${OPTARG}
-      printf "\nFile used is '%s'\n" "$INPUT"
-      ;;
-    *)
-      printf ""
-      ;;
+while test "$#" -gt 0; do
+  case "$1" in
+    -h) #|--help)
+      printf "Options:"
+      printf "\n     -h, --help           Shows help"
+      printf "\n     -i, --input          Input file"
+      printf "\n     -m, --matrix-size    Matrix dimension"
+      printf "\n"
+      exit 0
+    ;;
+    -m*|--matrix-size*)
+      shift
+      MATRIX_SIZE=$1
+      shift
+    ;;
+    -i*|--input*)
+      shift
+      INPUT_FILE=$1
+      printf "\nFile used is '%s'\n" "$1"
+      shift
+    ;;
   esac
 done
-shift "$(($OPTIND -1))"
 
+if [ -z "$INPUT_FILE" ]; then
+  printf "\nNo input file. Try [ -h / --help ]\n\n"
+  exit 0
+fi
 
-SECONDS="$(ffprobe "$INPUT" -show_entries format=duration -v quiet -of csv="p=0")"
+SECONDS="$(ffprobe "$INPUT_FILE" -show_entries format=duration -v quiet -of csv="p=0")"
 TIME="${SECONDS%.*}" # get total runtime in seconds
 
 if [ -n "$MATRIX_SIZE" ]; then
-  SPLIT=$(( $TIME / $MATRIX_SIZE )) # 
+  SPLIT=$(( $TIME / $MATRIX_SIZE ))
 else
-  SPLIT=$(( $TIME / $MIN_MATRIX_SIZE )) # 
+  SPLIT=$(( $TIME / $MIN_MATRIX_SIZE ))
 fi
 
 printf "\nTime in seconds is %s\n" "$TIME"
 
-if [ -n "$MATRIX_SIZE" ]; then
-  printf "\nWith a collage of %s, a screenshot is taken every %s seconds\n\n" "$MATRIX_SIZE" "$SPLIT"
-else
-  printf "\nWith a collage of %s, a screenshot is taken every %s seconds\n\n" "$MIN_MATRIX_SIZE" "$SPLIT"
-fi
